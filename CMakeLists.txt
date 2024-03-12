@@ -17,19 +17,28 @@ set( uxtheme_stub_SOURCES
 )
 add_library(uxtheme-stub  SHARED ${uxtheme_stub_SOURCES} )
 # ------------------------------------
+# dark lib
+# ------------------------------------
+set( dark_lib_SOURCES
+"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/IatHook.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/framework.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/targetver.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/UAHMenuBar.c"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/UAHMenuBar.h"
+#"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/wrapper.h"
+#"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/wrapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/dark_mode.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/dark_mode.cpp"
+)
+add_library(dark_lib  STATIC ${dark_lib_SOURCES} )
+# ------------------------------------
 # executable
 # ------------------------------------
 
 set( SOURCES
-"${CMAKE_CURRENT_SOURCE_DIR}/src/Main/main.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Main/main.c"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Main/main.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/Main/framework.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Main/DarkWin.exe.manifest"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/darkmode.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/IatHook.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMode/targetver.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMenu/UAHMenuBar.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/DarkMenu/UAHMenuBar.h"
 )
 
 set(RESOURCES
@@ -45,13 +54,14 @@ target_include_directories(${project_name} PUBLIC
 res
 src/uxtheme-stub
 src/DarkMode
-src/DarkMenu
+src/DarkMode
 src/Main
 )
 target_link_options(${project_name} PRIVATE  "/DELAYLOAD:uxtheme.dll")
 target_link_libraries(${project_name}
 ntdll
 OneCore
+dark_lib
 uxtheme-stub
 -manifest:embed -manifestinput:${CMAKE_CURRENT_SOURCE_DIR}/src/Main/DarkWin.exe.manifest
 )

@@ -2,7 +2,7 @@
 // https://github.com/stevemk14ebr/PolyHook_2_0/blob/master/sources/IatHook.cpp
 // which is licensed under the MIT License.
 // See PolyHook_2_0-LICENSE for more information.
-
+#include <stdint.h>
 #pragma once
 
 template <typename T, typename T1, typename T2>
@@ -50,7 +50,7 @@ PIMAGE_THUNK_DATA FindIatThunkInModule(void *moduleBase, const char *dllName, co
 	auto imports = DataDirectoryFromModuleBase<PIMAGE_IMPORT_DESCRIPTOR>(moduleBase, IMAGE_DIRECTORY_ENTRY_IMPORT);
 	for (; imports->Name; ++imports)
 	{
-		if (_stricmp(RVA2VA<LPCSTR>(moduleBase, imports->Name), dllName) != 0)
+		if (strcmp(RVA2VA<LPCSTR>(moduleBase, imports->Name), dllName) != 0)
 			continue;
 
 		auto origThunk = RVA2VA<PIMAGE_THUNK_DATA>(moduleBase, imports->OriginalFirstThunk);
@@ -65,7 +65,7 @@ PIMAGE_THUNK_DATA FindDelayLoadThunkInModule(void *moduleBase, const char *dllNa
 	auto imports = DataDirectoryFromModuleBase<PIMAGE_DELAYLOAD_DESCRIPTOR>(moduleBase, IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT);
 	for (; imports->DllNameRVA; ++imports)
 	{
-		if (_stricmp(RVA2VA<LPCSTR>(moduleBase, imports->DllNameRVA), dllName) != 0)
+		if (strcmp(RVA2VA<LPCSTR>(moduleBase, imports->DllNameRVA), dllName) != 0)
 			continue;
 
 		auto impName = RVA2VA<PIMAGE_THUNK_DATA>(moduleBase, imports->ImportNameTableRVA);
@@ -74,13 +74,12 @@ PIMAGE_THUNK_DATA FindDelayLoadThunkInModule(void *moduleBase, const char *dllNa
 	}
 	return nullptr;
 }
-
 PIMAGE_THUNK_DATA FindDelayLoadThunkInModule(void *moduleBase, const char *dllName, uint16_t ordinal)
 {
 	auto imports = DataDirectoryFromModuleBase<PIMAGE_DELAYLOAD_DESCRIPTOR>(moduleBase, IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT);
 	for (; imports->DllNameRVA; ++imports)
 	{
-		if (_stricmp(RVA2VA<LPCSTR>(moduleBase, imports->DllNameRVA), dllName) != 0)
+		if (strcmp(RVA2VA<LPCSTR>(moduleBase, imports->DllNameRVA), dllName) != 0)
 			continue;
 
 		auto impName = RVA2VA<PIMAGE_THUNK_DATA>(moduleBase, imports->ImportNameTableRVA);

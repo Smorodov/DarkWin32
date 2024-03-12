@@ -1,14 +1,17 @@
-#include "framework.h"
+#include "../DarkMode/framework.h"
 #include <Uxtheme.h>
 #include <vsstyle.h>
 #include "UAHMenuBar.h"
 
 #pragma comment(lib, "uxtheme.lib")
 
-static HTHEME g_menuTheme = nullptr;
-
+static HTHEME g_menuTheme;
 // ugly colors for illustration purposes
-static HBRUSH g_brBarBackground = CreateSolidBrush(RGB(0x10, 0x10, 0x10));
+static HBRUSH g_brBarBackground;
+        // ugly colors for illustration purposes
+        static HBRUSH g_brItemBackground;
+        static HBRUSH g_brItemBackgroundHot;
+        static HBRUSH g_brItemBackgroundSelected;
 
 void UAHDrawMenuNCBottomLine(HWND hWnd)
 {
@@ -20,7 +23,7 @@ void UAHDrawMenuNCBottomLine(HWND hWnd)
 
     RECT rcClient = { 0 };
     GetClientRect(hWnd, &rcClient);
-    MapWindowPoints(hWnd, nullptr, (POINT*)&rcClient, 2);
+    MapWindowPoints(hWnd, NULL, (POINT*)&rcClient, 2);
 
     RECT rcWindow = { 0 };
     GetWindowRect(hWnd, &rcWindow);
@@ -39,9 +42,18 @@ void UAHDrawMenuNCBottomLine(HWND hWnd)
 }
 
 // processes messages related to UAH / custom menubar drawing.
-// return true if handled, false to continue with normal processing in your wndproc
-bool UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* lr)
+// return TRUE if handled, FALSE to continue with normal processing in your wndproc
+BOOL UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* lr)
 {
+    if(g_brBarBackground ==NULL)
+    {
+        g_brBarBackground = CreateSolidBrush(RGB(0x10, 0x10, 0x10));    
+        // ugly colors for illustration purposes
+        g_brItemBackground = CreateSolidBrush(RGB(0x20, 0x20, 0x20));
+        g_brItemBackgroundHot = CreateSolidBrush(RGB(0x40, 0x40, 0x40));
+        g_brItemBackgroundSelected = CreateSolidBrush(RGB(0x60, 0x60, 0x60));
+
+    }
     switch (message)
     {    
     case WM_UAHDRAWMENU:
@@ -64,16 +76,12 @@ bool UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* 
 
         FillRect(pUDM->hdc, &rc, g_brBarBackground);
 
-        return true;
+        return TRUE;
     }
     case WM_UAHDRAWMENUITEM:
     {
         UAHDRAWMENUITEM* pUDMI = (UAHDRAWMENUITEM*)lParam;
 
-        // ugly colors for illustration purposes
-        static HBRUSH g_brItemBackground = CreateSolidBrush(RGB(0x20, 0x20, 0x20));
-        static HBRUSH g_brItemBackgroundHot = CreateSolidBrush(RGB(0x40, 0x40, 0x40));
-        static HBRUSH g_brItemBackgroundSelected = CreateSolidBrush(RGB(0x60, 0x60, 0x60));
 
         HBRUSH* pbrBackground = &g_brItemBackground;
 
@@ -133,7 +141,7 @@ bool UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* 
         FillRect(pUDMI->um.hdc, &pUDMI->dis.rcItem, *pbrBackground);               
         DrawThemeTextEx(g_menuTheme, pUDMI->um.hdc, MENU_BARITEM, MBI_NORMAL, menuString, mii.cch, dwFlags, &pUDMI->dis.rcItem, &opts);
 
-        return true;
+        return TRUE;
     }
     case WM_UAHMEASUREMENUITEM:
     {
@@ -146,25 +154,28 @@ bool UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* 
         // but we can modify it here to make it 1/3rd wider for example
         pMmi->mis.itemWidth = (pMmi->mis.itemWidth * 4) / 3;
 
-        return true;
+        return TRUE;
     }
     case WM_THEMECHANGED:
     {
         if (g_menuTheme) {
             CloseThemeData(g_menuTheme);
-            g_menuTheme = nullptr;
+            g_menuTheme = NULL;
         }
         // continue processing in main wndproc
-        return false;
+        return FALSE;
     }
     case WM_NCPAINT:
     case WM_NCACTIVATE:
         *lr = DefWindowProc(hWnd, message, wParam, lParam);
         UAHDrawMenuNCBottomLine(hWnd);
-        return true;
+        return TRUE;
         break;
+
+
+
     default:
-        return false;
+        return FALSE;
     }
 }
 
